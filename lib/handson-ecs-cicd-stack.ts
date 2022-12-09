@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -42,22 +43,6 @@ export class HandsonEcsCicdStack extends cdk.Stack {
       internetFacing: true, // インターネット向け
       loadBalancerName: 'ALB',
     })
-    // const ecsAlbListener = ecsAlb.addListener('Listener', {
-    //   port: 80,
-    //   open: true,
-    // })
-    //
-    // // Target Group
-    // const targetGroup = new elbv2.ApplicationTargetGroup(this, 'TargetGroup', {
-    //   vpc,
-    //   port: 3000,
-    //   protocol: elbv2.ApplicationProtocol.HTTP,
-    //   targetType: elbv2.TargetType.IP,
-    // })
-    //
-    // ecsAlbListener.addTargetGroups('TargetGroup', {
-    //   targetGroups: [targetGroup],
-    // })
 
     // ECS cluster
     const cluster = new ecs.Cluster(this, 'ECSCluster', {
@@ -103,13 +88,78 @@ export class HandsonEcsCicdStack extends cdk.Stack {
     });
 
     // Create ECS service
-    // const frontService = new ecs.FargateService(this, 'FrontService', {
-    //   cluster: cluster,
-    //   taskDefinition: frontTaskDefinition,
-    //   desiredCount: 3,
-    //   serviceName: `${this.userName}-ecsdemo-frontend`,
-    //   assignPublicIp: true,
-    // });
+    const frontService = new ecs.FargateService(this, 'FrontService', {
+      cluster: cluster,
+      taskDefinition: frontTaskDefinition,
+      desiredCount: 3,
+      serviceName: `${this.userName}-ecsdemo-frontend`,
+      assignPublicIp: true,
+      deploymentController: {
+        type: ecs.DeploymentControllerType.CODE_DEPLOY,
+      },
+    });
+
+    const frontListener = ecsAlb.addListener('FrontListener', {
+      port: 80,
+      open: true,
+    })
+
+    const frontTestListener = ecsAlb.addListener('FrontTestListener', {
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      port: 9000,
+      open: true,
+    })
+
+    // Blue Group
+    const blueTargetGroup = frontListener.addTargets('BlueTargetGroup', {
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      port: 3000,
+      targets: [frontService],
+      healthCheck: {
+        path: '/health',
+      },
+    });
+
+    // Green Group
+    const greenTargetGroup = new elbv2.ApplicationTargetGroup(this, 'GreenTargetGroup', {
+      vpc,
+      port: 3000,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targetType: elbv2.TargetType.IP,
+      healthCheck: {
+        path: '/health',
+      },
+    })
+
+    frontListener.addTargetGroups(`${this.userName}BlueTG`, {
+      targetGroups: [blueTargetGroup],
+    })
+    frontTestListener.addTargetGroups(`${this.userName}GreenTG`, {
+      targetGroups: [greenTargetGroup],
+    })
+
+    // CodeDeployのECSアプリケーションを作成
+    const ecsApplication = new codedeploy.EcsApplication(this, 'EcsApplication', {
+      applicationName: 'FrontECSService', // 名称は任意
+    });
+
+    // v2.50.0より後（L2 Costruct）
+    const blueGreenDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, 'BlueGreenDeploymentGroup', {
+      blueGreenDeploymentConfig: {  // ターゲットグループやリスナーを直接設定
+        blueTargetGroup,
+        greenTargetGroup,
+        listener: frontListener,
+        testListener: frontTestListener
+      },
+      autoRollback: {  // ロールバックの設定
+        failedDeployment: true
+      },
+      service: frontService,  // ECSサービスを直接指定
+      application: ecsApplication,  // 2で作成したECSアプリケーション
+      deploymentConfig: codedeploy.EcsDeploymentConfig.ALL_AT_ONCE, // デプロイの方式を指定（一括で置き換えるのか、一定割合ずつ置き換えるのかなど）
+      deploymentGroupName: 'frontEcsDeployment',
+    })
+
     /*
      */
   }
