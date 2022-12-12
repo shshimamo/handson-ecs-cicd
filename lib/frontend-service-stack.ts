@@ -94,13 +94,12 @@ export class FrontendServiceStack extends cdk.Stack {
 
         // CodeDeploy の ECS アプリケーションを作成
         const ecsApplication = new codedeploy.EcsApplication(this, `${Context.ID_PREFIX}-Ecs-Application`, {
-            applicationName: 'FrontECSService', // 名称は任意
+            applicationName: 'FrontECSService',
         });
 
         // デプロイグループ
-        // v2.50.0より後（L2 Costruct）
         const blueGreenDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, `${Context.ID_PREFIX}-BG-Deployment-Group`, {
-            blueGreenDeploymentConfig: {  // ターゲットグループやリスナーを直接設定
+            blueGreenDeploymentConfig: {  // ターゲットグループやリスナー
                 blueTargetGroup: props.blueTargetGroup,
                 greenTargetGroup: props.greenTargetGroup,
                 listener: props.frontListener,
@@ -109,9 +108,9 @@ export class FrontendServiceStack extends cdk.Stack {
             autoRollback: {  // ロールバックの設定
                 failedDeployment: true
             },
-            service: frontendService,  // ECSサービスを直接指定
-            application: ecsApplication,  // 2で作成したECSアプリケーション
-            deploymentConfig: codedeploy.EcsDeploymentConfig.ALL_AT_ONCE, // デプロイの方式を指定（一括で置き換えるのか、一定割合ずつ置き換えるのかなど）
+            service: frontendService,  // ECSサービス
+            application: ecsApplication,  // ECSアプリケーション
+            deploymentConfig: codedeploy.EcsDeploymentConfig.ALL_AT_ONCE, // デプロイの方式
             deploymentGroupName: 'frontEcsDeployment',
         })
 
