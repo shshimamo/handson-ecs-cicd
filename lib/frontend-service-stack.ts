@@ -74,7 +74,7 @@ export class FrontendServiceStack extends cdk.Stack {
             serviceName: `${Context.USER_NAME}-ecsdemo-frontend`,
             cluster: props.cluster,
             desiredCount: 3,
-            assignPublicIp: false,
+            assignPublicIp: true,
             taskDefinition: frontTaskDefinition,
             enableExecuteCommand: true,
             cloudMapOptions: {

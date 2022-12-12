@@ -65,7 +65,7 @@ export class InfrastructureStack extends cdk.Stack {
 
         // ポリシー
         const ECSExecPolicyStatement = new iam.PolicyStatement({
-            sid: `${Context.ID_PREFIX}-allowECSExec`,
+            sid: `${Context.ID_PREFIX}AllowECSExec`,
             resources: ['*'],
             actions: [
                 'ssmmessages:CreateControlChannel', // for ECS Exec
@@ -104,7 +104,7 @@ export class InfrastructureStack extends cdk.Stack {
             vpc,
             securityGroup: albSG,
             internetFacing: true,
-            loadBalancerName: 'ALB',
+            loadBalancerName: `${Context.ID_PREFIX}-ALB`,
             vpcSubnets: { subnets: vpc.publicSubnets },
         })
 
