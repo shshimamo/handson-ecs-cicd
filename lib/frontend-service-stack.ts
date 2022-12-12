@@ -93,12 +93,12 @@ export class FrontendServiceStack extends cdk.Stack {
         props.blueTargetGroup.addTarget(frontendService);
 
         // CodeDeploy の ECS アプリケーションを作成
-        const ecsApplication = new codedeploy.EcsApplication(this, `${Context.ID_PREFIX}-Ecs-Application`, {
-            applicationName: 'FrontECSService',
+        const ecsApplication = new codedeploy.EcsApplication(this, `${Context.ID_PREFIX}-EcsApplication`, {
+            applicationName: `${Context.ID_PREFIX}FrontendApplication`,
         });
 
         // デプロイグループ
-        const blueGreenDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, `${Context.ID_PREFIX}-BG-Deployment-Group`, {
+        const ecsDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, `${Context.ID_PREFIX}-EcsDeploymentGroup`, {
             blueGreenDeploymentConfig: {  // ターゲットグループやリスナー
                 blueTargetGroup: props.blueTargetGroup,
                 greenTargetGroup: props.greenTargetGroup,
@@ -111,7 +111,7 @@ export class FrontendServiceStack extends cdk.Stack {
             service: frontendService,  // ECSサービス
             application: ecsApplication,  // ECSアプリケーション
             deploymentConfig: codedeploy.EcsDeploymentConfig.ALL_AT_ONCE, // デプロイの方式
-            deploymentGroupName: 'frontEcsDeployment',
+            deploymentGroupName: `${Context.ID_PREFIX}FrontendDG`,
         })
 
     }
