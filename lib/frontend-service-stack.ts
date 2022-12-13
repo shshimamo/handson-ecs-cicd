@@ -47,7 +47,7 @@ export class FrontendServiceStack extends cdk.Stack {
         )
 
         // コンテナ
-        frontTaskDefinition.addContainer(`${Context.ID_PREFIX}-FrontendContainer`, {
+        frontTaskDefinition.addContainer('FrontendContainer', {
             containerName: 'ecsdemo-frontend',
             image: ecs.ContainerImage.fromEcrRepository(frontendRepo),
             memoryLimitMiB: 512,
@@ -70,7 +70,7 @@ export class FrontendServiceStack extends cdk.Stack {
         });
 
         // ECS サービス
-        const frontendService = new ecs.FargateService(this, `${Context.ID_PREFIX}-FrontendService`, {
+        const frontendService = new ecs.FargateService(this, 'FrontendService', {
             serviceName: `${Context.USER_NAME}-ecsdemo-frontend`,
             cluster: props.cluster,
             desiredCount: 3,
@@ -93,12 +93,12 @@ export class FrontendServiceStack extends cdk.Stack {
         props.blueTargetGroup.addTarget(frontendService);
 
         // CodeDeploy の ECS アプリケーションを作成
-        const ecsApplication = new codedeploy.EcsApplication(this, `${Context.ID_PREFIX}-EcsApplication`, {
+        const ecsApplication = new codedeploy.EcsApplication(this, 'EcsApplication', {
             applicationName: `${Context.ID_PREFIX}FrontendApplication`,
         });
 
         // デプロイグループ
-        const ecsDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, `${Context.ID_PREFIX}-EcsDeploymentGroup`, {
+        const ecsDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, 'EcsDeploymentGroup', {
             blueGreenDeploymentConfig: {  // ターゲットグループやリスナー
                 blueTargetGroup: props.blueTargetGroup,
                 greenTargetGroup: props.greenTargetGroup,

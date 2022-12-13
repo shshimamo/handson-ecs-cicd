@@ -26,7 +26,7 @@ export class InfrastructureStack extends cdk.Stack {
         super(scope, id, props);
 
         // create a VPC
-        const vpc = new ec2.Vpc(this, `${Context.ID_PREFIX}-VPC`, {
+        const vpc = new ec2.Vpc(this, 'VPC', {
             cidr: '10.0.0.0/16',
             maxAzs: 3,
             subnetConfiguration: [
@@ -40,23 +40,24 @@ export class InfrastructureStack extends cdk.Stack {
         });
 
         // セキュリティグループ(ALB)
-        const albSG = new ec2.SecurityGroup(this, `${Context.ID_PREFIX}-ALBSG`, {
+        const albSG = new ec2.SecurityGroup(this, 'ALBSG', {
             vpc,
-            securityGroupName: 'handson-alb-sg',
+            securityGroupName: `${Context.ID_PREFIX}-ALBSG`,
         })
         albSG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80))
         albSG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(9000))
 
-        this.frontendServiceSG = new ec2.SecurityGroup(this, `${Context.ID_PREFIX}-FrontendServiceSG`,
+        // セキュリティグループ(ECSサービス フロントエンド)
+        this.frontendServiceSG = new ec2.SecurityGroup(this, 'FrontendServiceSG',
             {
-                securityGroupName: 'frontendServiceSecurityGroup',
+                securityGroupName: `${Context.ID_PREFIX}-FrontendServiceSG`,
                 vpc: vpc,
             }
         );
         this.frontendServiceSG.addIngressRule(albSG, ec2.Port.allTcp());
 
         // クラウドマップ
-        this.cloudmapNamespace = new servicediscovery.PrivateDnsNamespace(this, `${Context.ID_PREFIX}-Namespace`,
+        this.cloudmapNamespace = new servicediscovery.PrivateDnsNamespace(this, 'Namespace',
             {
                 name: `${Context.ID_PREFIX}-service`,
                 vpc: vpc,
@@ -79,11 +80,13 @@ export class InfrastructureStack extends cdk.Stack {
             ],
         });
         this.frontendTaskRole = new iam.Role(this, 'FrontendTaskRole', {
+            roleName: `${Context.ID_PREFIX}-FrontendTaskRole`,
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
         this.frontendTaskRole.addToPolicy(ECSExecPolicyStatement);
 
-        this.TaskExecutionRole = new iam.Role(this, `${Context.ID_PREFIX}-TaskExecutionRole`, {
+        this.TaskExecutionRole = new iam.Role(this, 'TaskExecutionRole', {
+            roleName: `${Context.ID_PREFIX}-TaskExecutionRole`,
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
             managedPolicies: [
                 {
@@ -100,7 +103,7 @@ export class InfrastructureStack extends cdk.Stack {
         });
 
         // Application Load Balancer
-        const ecsAlb = new elbv2.ApplicationLoadBalancer(this, `${Context.ID_PREFIX}-ALB`, {
+        const ecsAlb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {
             vpc,
             securityGroup: albSG,
             internetFacing: true,
@@ -109,13 +112,14 @@ export class InfrastructureStack extends cdk.Stack {
         })
 
         // Blue リスナー
-        this.frontListener = ecsAlb.addListener(`${Context.ID_PREFIX}-Front-Listener`, {
+        this.frontListener = ecsAlb.addListener('Front-Listener', {
             port: 80,
             open: true,
         })
 
         // Blue TG
-        this.blueTargetGroup = this.frontListener.addTargets(`${Context.ID_PREFIX}-Blue-TargetGroup`, {
+        this.blueTargetGroup = this.frontListener.addTargets('Blue-TargetGroup', {
+            targetGroupName: `${Context.ID_PREFIX}-Blue-TargetGroup`,
             protocol: elbv2.ApplicationProtocol.HTTP,
             port: 3000,
             healthCheck: {
@@ -124,14 +128,15 @@ export class InfrastructureStack extends cdk.Stack {
         });
 
         // Green リスナー
-        this.frontTestListener = ecsAlb.addListener(`${Context.ID_PREFIX}-FrontTest-Listener`, {
+        this.frontTestListener = ecsAlb.addListener('FrontTest-Listener', {
             protocol: elbv2.ApplicationProtocol.HTTP,
             port: 9000,
             open: true,
         })
 
         // Green TG
-        this.greenTargetGroup = this.frontTestListener.addTargets(`${Context.ID_PREFIX}-Green-TargetGroup`, {
+        this.greenTargetGroup = this.frontTestListener.addTargets('Green-TargetGroup', {
+            targetGroupName: `${Context.ID_PREFIX}-Green-TargetGroup`,
             protocol: elbv2.ApplicationProtocol.HTTP,
             port: 3000,
             healthCheck: {
@@ -140,9 +145,9 @@ export class InfrastructureStack extends cdk.Stack {
         });
 
         // ECS cluster
-        this.cluster = new ecs.Cluster(this, `${Context.ID_PREFIX}-ECSCluster`, {
+        this.cluster = new ecs.Cluster(this, 'ECSCluster', {
             vpc: vpc,
-            clusterName: 'handson-ecs-cicd-fargate-cluster',
+            clusterName: `${Context.ID_PREFIX}-ECSCluster`,
             containerInsights: true,
         });
     }
