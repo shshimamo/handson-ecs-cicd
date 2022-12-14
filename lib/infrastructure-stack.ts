@@ -16,9 +16,11 @@ export class InfrastructureStack extends cdk.Stack {
     public readonly cloudmapNamespace: servicediscovery.PrivateDnsNamespace;
     public readonly frontendTaskRole: iam.Role;
     public readonly backendCrystalTaskRole: iam.Role;
+    public readonly backendNodejsTaskRole: iam.Role;
     public readonly TaskExecutionRole: iam.Role;
     public readonly frontendLogGroup: logs.LogGroup;
     public readonly backendCrystalLogGroup: logs.LogGroup;
+    public readonly backendNodejsLogGroup: logs.LogGroup;
     public readonly blueTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly greenTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly frontListener: elbv2.ApplicationListener;
@@ -102,6 +104,11 @@ export class InfrastructureStack extends cdk.Stack {
         });
         this.backendCrystalTaskRole.addToPolicy(ECSExecPolicyStatement);
 
+        this.backendNodejsTaskRole = new iam.Role(this, 'BackendNodejsTaskRole', {
+            roleName: `${Context.ID_PREFIX}-BackendNodejsTaskRole`,
+            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+        });
+        this.backendNodejsTaskRole.addToPolicy(ECSExecPolicyStatement);
 
         this.TaskExecutionRole = new iam.Role(this, 'TaskExecutionRole', {
             roleName: `${Context.ID_PREFIX}-TaskExecutionRole`,
@@ -125,6 +132,10 @@ export class InfrastructureStack extends cdk.Stack {
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
 
+        this.backendNodejsLogGroup = new logs.LogGroup(this, 'BackendNodejsLogGroup', {
+            logGroupName: `${Context.ID_PREFIX}-backend-nodejs-service`,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
 
         // Application Load Balancer
         const ecsAlb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {

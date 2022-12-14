@@ -5,6 +5,7 @@ import { InfrastructureStack } from '../lib/infrastructure-stack';
 import { FrontendServiceStack } from '../lib/frontend-service-stack';
 import { Context } from '../lib/common/context'
 import { BackendServiceCrystalStack } from "../lib/backend-service-crystal-stack";
+import { BackendServiceNodejsStack } from "../lib/backend-service-nodejs-stack";
 
 const app = new cdk.App();
 
@@ -33,5 +34,15 @@ new BackendServiceCrystalStack(app, `${Context.ID_PREFIX}-BackendCrystalEcsStack
     backendTaskRole: infra.backendCrystalTaskRole,
     backendTaskExecutionRole: infra.TaskExecutionRole,
     backendLogGroup: infra.backendCrystalLogGroup,
+    cloudmapNamespace: infra.cloudmapNamespace,
+});
+
+new BackendServiceNodejsStack(app, `${Context.ID_PREFIX}-BackendNodejsEcsStack`, {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+    cluster: infra.cluster,
+    backendServiceSG: infra.backendServiceSG,
+    backendTaskRole: infra.backendNodejsTaskRole,
+    backendTaskExecutionRole: infra.TaskExecutionRole,
+    backendLogGroup: infra.backendNodejsLogGroup,
     cloudmapNamespace: infra.cloudmapNamespace,
 });
