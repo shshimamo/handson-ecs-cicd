@@ -9,11 +9,11 @@ import { BackendServiceNodejsStack } from "../lib/backend-service-nodejs-stack";
 
 const app = new cdk.App();
 
-const infra = new InfrastructureStack(app, `${Context.ID_PREFIX}-VpcStack`, {
+const infra = new InfrastructureStack(app, `${Context.ID_PREFIX}-InfrastructureStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
 });
 
-new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontEcsStack`, {
+new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontendServiceStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     cluster: infra.cluster,
     frontendServiceSG: infra.frontendServiceSG,
@@ -27,7 +27,7 @@ new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontEcsStack`, {
     frontTestListener: infra.frontTestListener,
 });
 
-new BackendServiceCrystalStack(app, `${Context.ID_PREFIX}-BackendCrystalEcsStack`, {
+new BackendServiceCrystalStack(app, `${Context.ID_PREFIX}-BackendServiceCrystalStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     cluster: infra.cluster,
     backendServiceSG: infra.backendServiceSG,
@@ -37,7 +37,7 @@ new BackendServiceCrystalStack(app, `${Context.ID_PREFIX}-BackendCrystalEcsStack
     cloudmapNamespace: infra.cloudmapNamespace,
 });
 
-new BackendServiceNodejsStack(app, `${Context.ID_PREFIX}-BackendNodejsEcsStack`, {
+new BackendServiceNodejsStack(app, `${Context.ID_PREFIX}-BackendServiceNodejsStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     cluster: infra.cluster,
     backendServiceSG: infra.backendServiceSG,

@@ -28,7 +28,7 @@ export class FrontendServiceStack extends cdk.Stack {
         super(scope, id, props);
 
         // ECS タスク定義
-        const frontTaskDefinition = new ecs.FargateTaskDefinition(this, `${Context.USER_NAME}-FrontendTaskDef`, {
+        const frontTaskDefinition = new ecs.FargateTaskDefinition(this, "FrontendTaskDef", {
             memoryLimitMiB: 512,
             cpu: 256,
             executionRole: props.frontendTaskExecutionRole,
