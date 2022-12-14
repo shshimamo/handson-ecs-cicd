@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { InfrastructureStack } from '../lib/infrastructure-stack';
 import { FrontendServiceStack } from '../lib/frontend-service-stack';
 import { Context } from '../lib/common/context'
+import { BackendServiceCrystalStack } from "../lib/backend-service-crystal-stack";
 
 const app = new cdk.App();
 
@@ -23,4 +24,14 @@ new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontEcsStack`, {
     greenTargetGroup: infra.greenTargetGroup,
     frontListener: infra.frontListener,
     frontTestListener: infra.frontTestListener,
+});
+
+new BackendServiceCrystalStack(app, `${Context.ID_PREFIX}-BackendCrystalEcsStack`, {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+    cluster: infra.cluster,
+    backendServiceSG: infra.backendServiceSG,
+    backendTaskRole: infra.backendCrystalTaskRole,
+    backendTaskExecutionRole: infra.TaskExecutionRole,
+    backendLogGroup: infra.backendCrystalLogGroup,
+    cloudmapNamespace: infra.cloudmapNamespace,
 });

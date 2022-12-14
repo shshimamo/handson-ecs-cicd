@@ -12,10 +12,13 @@ import {ApplicationListener} from "aws-cdk-lib/aws-elasticloadbalancingv2/lib/al
 export class InfrastructureStack extends cdk.Stack {
     public readonly cluster: ecs.Cluster;
     public readonly frontendServiceSG: ec2.SecurityGroup;
+    public readonly backendServiceSG: ec2.SecurityGroup;
     public readonly cloudmapNamespace: servicediscovery.PrivateDnsNamespace;
     public readonly frontendTaskRole: iam.Role;
+    public readonly backendCrystalTaskRole: iam.Role;
     public readonly TaskExecutionRole: iam.Role;
     public readonly frontendLogGroup: logs.LogGroup;
+    public readonly backendCrystalLogGroup: logs.LogGroup;
     public readonly blueTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly greenTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly frontListener: elbv2.ApplicationListener;
@@ -55,6 +58,13 @@ export class InfrastructureStack extends cdk.Stack {
             }
         );
         this.frontendServiceSG.addIngressRule(albSG, ec2.Port.allTcp());
+        this.backendServiceSG = new ec2.SecurityGroup(this, 'BackendServiceSG',
+            {
+                securityGroupName: `${Context.ID_PREFIX}-BackendServiceSG`,
+                vpc: vpc,
+            }
+        );
+        this.backendServiceSG.addIngressRule(this.frontendServiceSG, ec2.Port.allTcp());
 
         // クラウドマップ
         this.cloudmapNamespace = new servicediscovery.PrivateDnsNamespace(this, 'Namespace',
@@ -79,11 +89,19 @@ export class InfrastructureStack extends cdk.Stack {
                 'logs:PutLogEvents',
             ],
         });
+
         this.frontendTaskRole = new iam.Role(this, 'FrontendTaskRole', {
             roleName: `${Context.ID_PREFIX}-FrontendTaskRole`,
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
         this.frontendTaskRole.addToPolicy(ECSExecPolicyStatement);
+
+        this.backendCrystalTaskRole = new iam.Role(this, 'BackendCrystalTaskRole', {
+            roleName: `${Context.ID_PREFIX}-BackendCrystalTaskRole`,
+            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+        });
+        this.backendCrystalTaskRole.addToPolicy(ECSExecPolicyStatement);
+
 
         this.TaskExecutionRole = new iam.Role(this, 'TaskExecutionRole', {
             roleName: `${Context.ID_PREFIX}-TaskExecutionRole`,
@@ -101,6 +119,12 @@ export class InfrastructureStack extends cdk.Stack {
             logGroupName: `${Context.ID_PREFIX}-frontend-service`,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
+
+        this.backendCrystalLogGroup = new logs.LogGroup(this, 'BackendCrystalLogGroup', {
+            logGroupName: `${Context.ID_PREFIX}-backend-crystal-service`,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
+
 
         // Application Load Balancer
         const ecsAlb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {
