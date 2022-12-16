@@ -6,8 +6,13 @@ import { FrontendServiceStack } from '../lib/frontend-service-stack';
 import { Context } from '../lib/common/context'
 import { BackendServiceCrystalStack } from "../lib/backend-service-crystal-stack";
 import { BackendServiceNodejsStack } from "../lib/backend-service-nodejs-stack";
+import { EcrStack } from "../lib/ecr-stack";
 
 const app = new cdk.App();
+
+const ecr = new EcrStack(app, `${Context.ID_PREFIX}-EcrStack`, {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+});
 
 const infra = new InfrastructureStack(app, `${Context.ID_PREFIX}-InfrastructureStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
