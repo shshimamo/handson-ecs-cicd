@@ -4,11 +4,13 @@ import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
 import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { Context } from './common/context'
 
 interface FrontendPipelineStackProps extends cdk.StackProps {
-    ecsDeploymentGroup: codedeploy.EcsDeploymentGroup
+    ecsDeploymentGroup: codedeploy.EcsDeploymentGroup,
+    buildProjectLogGroup: logs.LogGroup
 }
 
 export class FrontendPipelineStack extends cdk.Stack {
@@ -38,7 +40,13 @@ export class FrontendPipelineStack extends cdk.Stack {
         const buildProject = new codebuild.PipelineProject(this, 'BuildProject', {
             projectName: `${Context.ID_PREFIX}-frontend-build`,
             environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+                buildImage: codebuild.LinuxBuildImage.STANDARD_6_0,
+                privileged: true,
+            },
+            logging: {
+                cloudWatch: {
+                    logGroup: props.buildProjectLogGroup,
+                }
             }
         });
         buildProject.addToRolePolicy(

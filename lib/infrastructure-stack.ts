@@ -21,6 +21,7 @@ export class InfrastructureStack extends cdk.Stack {
     public readonly frontendLogGroup: logs.LogGroup;
     public readonly backendCrystalLogGroup: logs.LogGroup;
     public readonly backendNodejsLogGroup: logs.LogGroup;
+    public readonly frontendBuildProjectLogGroup: logs.LogGroup;
     public readonly blueTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly greenTargetGroup: elbv2.ApplicationTargetGroup;
     public readonly frontListener: elbv2.ApplicationListener;
@@ -134,6 +135,11 @@ export class InfrastructureStack extends cdk.Stack {
 
         this.backendNodejsLogGroup = new logs.LogGroup(this, 'BackendNodejsLogGroup', {
             logGroupName: `${Context.ID_PREFIX}-backend-nodejs-service`,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+        });
+
+        this.frontendBuildProjectLogGroup = new logs.LogGroup(this, 'frontendBuildProjectLogGroup', {
+            logGroupName: `${Context.ID_PREFIX}-frontend-build-project`,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
         });
 
