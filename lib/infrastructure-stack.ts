@@ -176,14 +176,19 @@ export class InfrastructureStack extends cdk.Stack {
         })
 
         // Green TG
-        this.greenTargetGroup = this.frontTestListener.addTargets('Green-TargetGroup', {
+        this.greenTargetGroup = new elbv2.ApplicationTargetGroup(this, 'Green-TargetGroup', {
+            vpc,
             targetGroupName: `${Context.ID_PREFIX}-Green-TargetGroup`,
             protocol: elbv2.ApplicationProtocol.HTTP,
             port: 3000,
             healthCheck: {
                 path: '/health',
             },
-        });
+            targetType: elbv2.TargetType.IP, // ターゲットタイプをIPにする必要がある
+        })
+        this.frontTestListener.addTargetGroups('Add-Green-TargetGroup', {
+            targetGroups: [this.greenTargetGroup],
+        })
 
         // ECS cluster
         this.cluster = new ecs.Cluster(this, 'ECSCluster', {
