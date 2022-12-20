@@ -7,6 +7,7 @@ import { Context } from '../lib/common/context'
 import { BackendServiceCrystalStack } from "../lib/backend-service-crystal-stack";
 import { BackendServiceNodejsStack } from "../lib/backend-service-nodejs-stack";
 import { EcrStack } from "../lib/ecr-stack";
+import {FrontendPipelineStack} from "../lib/frontend-pipeline-stack";
 
 const app = new cdk.App();
 
@@ -18,7 +19,7 @@ const infra = new InfrastructureStack(app, `${Context.ID_PREFIX}-InfrastructureS
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
 });
 
-new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontendServiceStack`, {
+const frontendService = new FrontendServiceStack(app, `${Context.ID_PREFIX}-FrontendServiceStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
     cluster: infra.cluster,
     frontendServiceSG: infra.frontendServiceSG,
@@ -51,3 +52,8 @@ new BackendServiceNodejsStack(app, `${Context.ID_PREFIX}-BackendServiceNodejsSta
     backendLogGroup: infra.backendNodejsLogGroup,
     cloudmapNamespace: infra.cloudmapNamespace,
 });
+
+new FrontendPipelineStack(app, `${Context.ID_PREFIX}-FrontendPipelineStack`, {
+    env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
+    ecsDeploymentGroup: frontendService.ecsDeploymentGroup,
+})

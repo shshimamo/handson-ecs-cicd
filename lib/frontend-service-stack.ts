@@ -1,5 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as codedeploy from 'aws-cdk-lib/aws-codedeploy';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -24,6 +27,8 @@ interface FrontendServiceStackProps extends cdk.StackProps {
 }
 
 export class FrontendServiceStack extends cdk.Stack {
+    public readonly ecsDeploymentGroup: codedeploy.EcsDeploymentGroup
+
     constructor(scope: Construct, id: string, props: FrontendServiceStackProps) {
         super(scope, id, props);
 
@@ -98,7 +103,7 @@ export class FrontendServiceStack extends cdk.Stack {
         });
 
         // デプロイグループ
-        const ecsDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, 'EcsDeploymentGroup', {
+        this.ecsDeploymentGroup = new codedeploy.EcsDeploymentGroup(this, 'EcsDeploymentGroup', {
             blueGreenDeploymentConfig: {  // ターゲットグループやリスナー
                 blueTargetGroup: props.blueTargetGroup,
                 greenTargetGroup: props.greenTargetGroup,
