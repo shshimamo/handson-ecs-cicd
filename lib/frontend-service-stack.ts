@@ -108,7 +108,9 @@ export class FrontendServiceStack extends cdk.Stack {
                 blueTargetGroup: props.blueTargetGroup,
                 greenTargetGroup: props.greenTargetGroup,
                 listener: props.frontListener,
-                testListener: props.frontTestListener
+                testListener: props.frontTestListener,
+                deploymentApprovalWaitTime: cdk.Duration.minutes(10),
+                terminationWaitTime: cdk.Duration.minutes(10),
             },
             autoRollback: {  // ロールバックの設定
                 failedDeployment: true
