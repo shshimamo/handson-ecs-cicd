@@ -158,14 +158,19 @@ export class InfrastructureStack extends cdk.Stack {
         })
 
         // Blue TG
-        this.blueTargetGroup = this.frontListener.addTargets('Blue-TargetGroup', {
+        this.blueTargetGroup = new elbv2.ApplicationTargetGroup(this, 'Blue-TargetGroup', {
+            vpc,
             targetGroupName: `${Context.ID_PREFIX}-Blue-TargetGroup`,
             protocol: elbv2.ApplicationProtocol.HTTP,
             port: 3000,
             healthCheck: {
                 path: '/health',
             },
-        });
+            targetType: elbv2.TargetType.IP,
+        })
+        this.frontListener.addTargetGroups('Add-Blue-TargetGroup', {
+            targetGroups: [this.blueTargetGroup],
+        })
 
         // Green リスナー
         this.frontTestListener = ecsAlb.addListener('FrontTest-Listener', {
@@ -183,7 +188,7 @@ export class InfrastructureStack extends cdk.Stack {
             healthCheck: {
                 path: '/health',
             },
-            targetType: elbv2.TargetType.IP, // ターゲットタイプをIPにする必要がある
+            targetType: elbv2.TargetType.IP,
         })
         this.frontTestListener.addTargetGroups('Add-Green-TargetGroup', {
             targetGroups: [this.greenTargetGroup],
