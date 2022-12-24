@@ -115,7 +115,7 @@ export class FrontendServiceStack extends cdk.Stack {
             service: frontendService,  // ECSサービス
             application: ecsApplication,  // ECSアプリケーション
             deploymentConfig: codedeploy.EcsDeploymentConfig.ALL_AT_ONCE, // デプロイの方式
-            deploymentGroupName: `${Context.ID_PREFIX}FrontendDG`,
+            deploymentGroupName: `${Context.ID_PREFIX}FrontendDepGrp`,
         })
 
     }
