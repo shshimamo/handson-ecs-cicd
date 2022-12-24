@@ -11,7 +11,7 @@ import {FrontendPipelineStack} from "../lib/frontend-pipeline-stack";
 
 const app = new cdk.App();
 
-const ecr = new EcrStack(app, `${Context.ID_PREFIX}-EcrStack`, {
+new EcrStack(app, `${Context.ID_PREFIX}-EcrStack`, {
     env: {account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION},
 });
 

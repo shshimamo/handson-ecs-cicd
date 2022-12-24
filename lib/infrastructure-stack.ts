@@ -7,7 +7,6 @@ import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { Context } from './common/context'
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
-import {ApplicationListener} from "aws-cdk-lib/aws-elasticloadbalancingv2/lib/alb/application-listener";
 
 export class InfrastructureStack extends cdk.Stack {
     public readonly cluster: ecs.Cluster;
